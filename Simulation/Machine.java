@@ -1,36 +1,37 @@
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-
-public class Machine implements Comparable{
+public class Machine implements Comparable<Machine> {
 
 	private String name;
 	
 	private Integer activityTime;
 	
-	Integer brokenTime;
+	private Integer breakTime;
 	
-	private ArrayList<Integer> brokenTimeList = new ArrayList<Integer>();
-	private ArrayList<Integer> repairTimeList = new ArrayList<Integer>();
-	
-	boolean isBroken = false;
-	
-	boolean inServer = false;
-	
+	private boolean isBroken;
+			
 	Machine(String name, Integer time) {
 		this.name = name;
 		this.activityTime = time;
+		this.isBroken = false;
 		}
-
+	
 	public String getName() {
 		return name;
 	}
 
-	public Integer getTime() {
+	public Integer getActivityTime() {
 		return activityTime;
 	}
 
-	public void setTime(Integer time) {
+	public void setActivityTime(Integer time) {
 		this.activityTime = time;
+	}
+
+	public Integer getBreakTime() {
+		return breakTime;
+	}
+
+	public void setBreakTime(Integer breakTime) {
+		this.breakTime = breakTime;
 	}
 
 	public boolean isBroken() {
@@ -40,42 +41,10 @@ public class Machine implements Comparable{
 	public void setBroken(boolean isBroken) {
 		this.isBroken = isBroken;
 	}
-
-	public boolean isInServer() {
-		return inServer;
-	}
-
-	public void setInServer(boolean inServer) {
-		this.inServer = inServer;
-	}
-
+	
 	@Override
-	public int compareTo(Object o) {
-		Machine m = (Machine)o;
-		
-		return (this.activityTime >= m.activityTime ) ? 1:-1;
-	}
-
-	public void insertBrokenTime(Integer brokenTime) {
-		this.brokenTimeList.add(brokenTime);
+	public int compareTo(Machine o) {
+		return (this.activityTime >= o.activityTime ) ? 1:-1;
 	}
 	
-	public void insertReparTime(Integer brokenTime) {
-		this.repairTimeList.add(brokenTime);
-	}
-	
-	public ArrayList<Integer> getBrokenTimeList() {
-		return brokenTimeList;
-	}
-	
-	public ArrayList<Integer> getReparTimeList() {
-		return repairTimeList;
-	}
-	
-	public int getBreakDown(){
-		if(this.repairTimeList.size() == 0)
-			return 0;
-		
-		return this.repairTimeList.get(this.repairTimeList.size()-1) - this.brokenTimeList.get(this.repairTimeList.size()-1);
-	}
 }
