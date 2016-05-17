@@ -5,12 +5,13 @@ import java.util.Scanner;
 
 public class MachineInterface {
 
+	// Function returns a number which follows exponential distribution,
+	// with rate parameter lambda as interArriv.
 	public static double getNext(Random rand, double interArriv) {
 		return Math.log(1-rand.nextDouble())/(-(double)1/interArriv);
-		
-		
 	}
 
+	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 
 		Scanner sc = new Scanner(System.in);
@@ -18,6 +19,8 @@ public class MachineInterface {
 		double meanOperationalTime = sc.nextDouble();
 		System.out.println("Enter the Mean Repair Time");
 		double meanServiceTime = sc.nextDouble();
+		System.out.println("Enter the number of machines in the System");
+		int machineCount = sc.nextInt();
 
 		Random randService = new Random();
 		Random randArrival = new Random();
@@ -25,20 +28,23 @@ public class MachineInterface {
 		randArrival.setSeed(1);
 		boolean serverBusy = false;
 		String serverStatus = "idle";
-		Machine server = new Machine("dummy", Integer.MAX_VALUE);
-		PriorityQueue<Machine> queue = new PriorityQueue<Machine>();
-		PriorityQueue<Machine> arrival = new PriorityQueue<Machine>();
-		Machine CL1 = new Machine("CL1", 1);
-		Machine CL2 = new Machine("CL2", 4);
-		Machine CL3 = new Machine("CL3", 9);
 
-		arrival.add(CL1);
-		arrival.add(CL2);
-		arrival.add(CL3);
+		// This object is the Repairman
+		Machine server = new Machine("dummy", Integer.MAX_VALUE);
+		
+		// This queue holds the broken machines to be serviced/ repaired.
+		PriorityQueue<Machine> queue = new PriorityQueue<Machine>();
+		
+		// This queue simulates the breaking down of the machines.
+		PriorityQueue<Machine> arrival = new PriorityQueue<Machine>();
+		
+		// Create Machines objects
+		Machine[] machineList = initializeMachines(arrival, randArrival, meanOperationalTime, machineCount);
+
 		ArrayList<Integer> breakdownList = new ArrayList<Integer>();
 		int MC = 0;
-		System.out.println(" MC =  " + MC + "| CL1 " + CL1.getActivityTime() + "| CL2 " + CL2.getActivityTime()
-				+ "| CL3 " + CL3.getActivityTime() + "| CL4 " + " - " + "| n " + queue.size() + " | " + serverStatus);
+		// This method is used to print the initial states of the machines
+		printInitialState(machineList, MC, queue, serverStatus);
 		while (MC < 100) {
 			// This statement checks if a machine is breaking down or is getting
 			// repaired.
@@ -94,24 +100,56 @@ public class MachineInterface {
 						server.setActivityTime(MC + (int) Math.ceil(getNext(randService, meanServiceTime)));
 					}
 				}
-				// Printing
-				int serverCount = serverBusy ? 1 : 0;
-				serverStatus = serverBusy ? "busy" : "idle";
-				String printCL1, printCL2, printCL3;
-				printCL1 = CL1.isBroken() ? "-": CL1.getActivityTime().toString();
-				printCL2 = CL2.isBroken() ? "-": CL2.getActivityTime().toString();
-				printCL3 = CL3.isBroken() ? "-": CL3.getActivityTime().toString();
-				String serverTime = server.getActivityTime().toString();
-				if (server.getActivityTime() == Integer.MAX_VALUE)
-					serverTime = " - ";
-				System.out.println(" MC =  " + MC + "| CL1 " + printCL1 + "| CL2 " + printCL2 + "| CL3 " + printCL3
-						+ "| CL4 " + serverTime + "| n " + (queue.size() + serverCount) + " | " + serverStatus);
+				// Printing the current activity and states of each machines.
+				printActivity(machineList, server, serverBusy,  MC, queue, serverStatus);
+				
 			}
 			MC++;
 		}
-		// System.out.println("exit");
-		System.out.println(" Number of Observations = " + breakdownList.size());
 
 	}
-
+	// This method create Machine objects, sets their initial breakdown time and returns the Machine object array.
+	static Machine[] initializeMachines(PriorityQueue<Machine> arrival, Random randArrival, double meanOperationalTime, int count) {
+		
+		Machine[] array = new Machine[count];
+		for(int i = 0; i < count; i++) {
+			Machine m = new Machine("CL"+(i+1), (int)getNext(randArrival, meanOperationalTime));
+			arrival.add(m);
+			array[i] = m;
+		}
+		return array;
+	}
+	
+	// This method prints the initial states of the machines
+	private static void printInitialState(Machine[] machines, int MC, PriorityQueue<Machine> queue, String serverStatus) {
+		StringBuilder br = new StringBuilder();
+		br.append(" MC = " + MC);
+		for(int i = 0; i < machines.length; i++) {
+			br.append("| " +machines[i].getName() +" ");
+			br.append(machines[i].getActivityTime() +" "); 
+			
+		}
+		br.append("| RepairStation - | n " + queue.size() + " | " + serverStatus);
+		System.out.println(br.toString());
+	}
+	
+	// This method prints the current activity and states of each machines.
+	static void printActivity(Machine[] machines, Machine server, boolean serverBusy, int MC, PriorityQueue<Machine> queue, String serverStatus) {
+		
+		StringBuilder br = new StringBuilder();
+		int serverCount = serverBusy ? 1 : 0;
+		serverStatus = serverBusy ? "busy" : "idle";
+		br.append(" MC = " + MC);
+		for(int i = 0; i < machines.length; i++) {
+			br.append("| " +machines[i].getName() +" ");
+			br.append(machines[i].isBroken() ? "-": machines[i].getActivityTime().toString() +" "); 
+		}
+		String serverTime = server.getActivityTime().toString();
+		if (server.getActivityTime() == Integer.MAX_VALUE)
+			serverTime = " - ";
+		br.append("| RepairStation " + serverTime  +"| n " + (queue.size() + serverCount) + " | " + serverStatus);
+		System.out.println(br.toString());
+	}
+	
+	
 }
